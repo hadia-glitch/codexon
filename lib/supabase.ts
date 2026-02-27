@@ -1,4 +1,4 @@
-//Author:HadiaNoor Purpose:Part of Assigned task Date:276-2-26
+// /*Author:HadiaNoor Purpose:contains supabase keys and url Date:27-2-26*/
 import { createClient } from '@supabase/supabase-js'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
