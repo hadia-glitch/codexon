@@ -1,13 +1,22 @@
-import { supabase } from "@/lib/supabaseClient";
+/*Author:HadiaNoor Purpose:defines main route css Date:27-2-26*/
+'use client'
 
-export default async function Page() {
-  const { data, error } = await supabase.from("test").select("*");
+import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { supabase } from '../lib/supabase'
 
-  console.log(data, error);
+export default function Home() {
+  const router = useRouter()
+
+  useEffect(() => {
+    supabase.auth.signOut().then(() => {
+      router.replace('/auth/login')
+    })
+  }, [router])
 
   return (
-    <main className="p-6">
-      <h1>Supabase Connected ✅</h1>
-    </main>
-  );
+    <div className="min-h-screen flex items-center justify-center bg-gray-950">
+      <div className="w-8 h-8 border-2 border-gray-700 border-t-violet-500 rounded-full animate-spin" />
+    </div>
+  )
 }
