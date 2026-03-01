@@ -4,7 +4,7 @@
 import { useState, type FormEvent } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/context/authContext';
 
 export default function RegisterForm() {
   const { signUp } = useAuth();
@@ -12,36 +12,36 @@ export default function RegisterForm() {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [confirm, setConfirm] = useState('');
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [errorMsg, setErrorMsg] = useState('');
+  const [successMsg, setSuccessMsg] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    setError('');
-    if (password !== confirm) {
-      setError('Passwords do not match');
+    setErrorMsg('');
+    if (password !== confirmPassword) {
+      setErrorMsg('Passwords do not match');
       return;
     }
     if (password.length < 6) {
-      setError('Password must be at least 6 characters');
+      setErrorMsg('Password must be at least 6 characters');
       return;
     }
-    setLoading(true);
+    setIsLoading(true);
     try {
       await signUp(email, password, fullName);
-      setSuccess('Account created! Check your email to confirm, then sign in.');
+      setSuccessMsg('Account created! Check your email to confirm, then sign in.');
       setTimeout(() => router.push('/auth/login'), 3000);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Registration failed');
+      setErrorMsg(err instanceof Error ? err.message : 'Registration failed');
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 glow-amber-sm">
+    <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 glowAmberSm">
       <div className="mb-8">
         <h1 className="font-display text-2xl font-700 text-slate-100 mb-1">
           Create account
@@ -98,38 +98,38 @@ export default function RegisterForm() {
           </label>
           <input
             type="password"
-            value={confirm}
-            onChange={(e) => setConfirm(e.target.value)}
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
             required
             placeholder="••••••••"
             className="w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-3 text-slate-100 placeholder-slate-700 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/30 transition-all font-mono text-sm"
           />
         </div>
 
-        {error && (
+        {errorMsg && (
           <div className="flex items-center gap-2 bg-red-500/10 border border-red-500/30 rounded-lg px-4 py-3">
             <svg className="w-4 h-4 text-red-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <p className="text-red-400 text-sm font-mono">{error}</p>
+            <p className="text-red-400 text-sm font-mono">{errorMsg}</p>
           </div>
         )}
 
-        {success && (
+        {successMsg && (
           <div className="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/30 rounded-lg px-4 py-3">
             <svg className="w-4 h-4 text-emerald-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
-            <p className="text-emerald-400 text-sm font-mono">{success}</p>
+            <p className="text-emerald-400 text-sm font-mono">{successMsg}</p>
           </div>
         )}
 
         <button
           type="submit"
-          disabled={loading}
+          disabled={isLoading}
           className="w-full bg-amber-500 hover:bg-amber-400 disabled:bg-amber-500/50 text-slate-950 font-display font-700 py-3 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 group"
         >
-          {loading ? (
+          {isLoading ? (
             <>
               <div className="w-4 h-4 border-2 border-slate-950 border-t-transparent rounded-full animate-spin" />
               Creating account...

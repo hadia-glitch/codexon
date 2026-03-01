@@ -1,22 +1,29 @@
-/*Author:HadiaNoor Purpose:defines main route css Date:27-2-26*/
-'use client'
+//author:HadiaNoor Purpose:Root page that redirects to dashboard or login based on auth status Date:29-2-26
+'use client';
 
-import { useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { supabase } from '../lib/supabase'
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/context/authContext';
 
-export default function Home() {
-  const router = useRouter()
+export default function RootPage() {
+  const { user, loading } = useAuth();
+  const router = useRouter();
 
   useEffect(() => {
-    supabase.auth.signOut().then(() => {
-      router.replace('/auth/login')
-    })
-  }, [router])
+    if (loading) return;
+    if (user) {
+      router.replace('/dashboard');
+    } else {
+      router.replace('/auth/login');
+    }
+  }, [user, loading, router]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-950">
-      <div className="w-8 h-8 border-2 border-gray-700 border-t-violet-500 rounded-full animate-spin" />
+    <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+      <div className="flex flex-col items-center gap-4">
+        <div className="w-8 h-8 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" />
+        <p className="text-slate-500 font-mono text-sm">Initializing...</p>
+      </div>
     </div>
-  )
+  );
 }

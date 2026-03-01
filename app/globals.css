@@ -1,4 +1,3 @@
-/*Author:HadiaNoor Purpose:import tailwind css Date:27-2-26*/
 @import "tailwindcss";
 
 @layer base {
@@ -39,15 +38,15 @@
     font-family: var(--font-syne);
   }
 
-  .glow-amber {
+  .glowAmber {
     box-shadow: 0 0 20px rgba(245, 158, 11, 0.15);
   }
 
-  .glow-amber-sm {
+  .glowAmberSm {
     box-shadow: 0 0 10px rgba(245, 158, 11, 0.1);
   }
 
-  .text-glow {
+  .textGlow {
     text-shadow: 0 0 20px rgba(245, 158, 11, 0.4);
   }
 

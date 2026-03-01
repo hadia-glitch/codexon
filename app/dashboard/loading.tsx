@@ -1,8 +1,7 @@
-//Author:HadiaNoor Purpose:Loading screen Date:27-2-26
+//Author:HadiaNoor Purpose:Render loading component Date:27-2-26
 export default function DashboardLoading() {
   return (
     <div className="flex flex-col gap-6">
-      {/* Header skeleton */}
       <div className="flex items-center justify-between">
         <div>
           <div className="h-8 w-48 bg-slate-800 rounded-lg animate-pulse mb-2" />
@@ -11,7 +10,6 @@ export default function DashboardLoading() {
         <div className="h-10 w-32 bg-slate-800 rounded-lg animate-pulse" />
       </div>
 
-      {/* Stats skeleton */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {Array.from({ length: 4 }).map((_, i) => (
           <div key={i} className="bg-slate-900 border border-slate-800 rounded-xl p-4 animate-pulse">
@@ -21,7 +19,6 @@ export default function DashboardLoading() {
         ))}
       </div>
 
-      {/* Task cards skeleton */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {Array.from({ length: 6 }).map((_, i) => (
           <div key={i} className="bg-slate-900 border border-slate-800 rounded-xl p-5 animate-pulse">

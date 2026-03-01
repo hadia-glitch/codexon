@@ -1,49 +1,49 @@
 //author:HadiaNoor Purpose:Types for Task Management App Date:28-2-26
-export interface Profile {
+export interface profile {
   id: string;
   email: string;
-  full_name?: string;
-  avatar_url?: string;
-  created_at: string;
+  fullName?: string;
+  avatarUrl?: string;
+  createdAt: string;
 }
 
-export type Priority = 'low' | 'medium' | 'high';
-export type Status = 'pending' | 'in_progress' | 'completed';
+export type priority = 'low' | 'medium' | 'high';
+export type status = 'pending' | 'in_progress' | 'completed';
 
-export interface Task {
+export interface task {
   id: string;
-  user_id: string;
+  userId: string;
   title: string;
   description?: string;
-  due_date?: string;
-  priority: Priority;
-  status: Status;
+  dueDate?: string;
+  priority: priority;
+  status: status;
   tags: string[];
-  created_at: string;
-  updated_at: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
-export interface CreateTaskInput {
+export interface createTaskInput {
   title: string;
   description?: string;
-  due_date?: string;
-  priority: Priority;
-  status: Status;
+  dueDate?: string;
+  priority: priority;
+  status: status;
   tags: string[];
 }
 
-export interface UpdateTaskInput extends Partial<CreateTaskInput> {
+export interface updateTaskInput extends Partial<createTaskInput> {
   id: string;
 }
 
-export type FilterStatus = 'all' | Status;
-export type FilterPriority = 'all' | Priority;
-export type SortBy = 'created_at' | 'due_date' | 'priority' | 'title';
+export type filterStatus = 'all' | status;
+export type filterPriority = 'all' | priority;
+export type sortBy = 'createdAt' | 'dueDate' | 'priority' | 'title';
 
-export interface TaskFilters {
-  status: FilterStatus;
-  priority: FilterPriority;
-  sortBy: SortBy;
+export interface taskFilters {
+  status: filterStatus;
+  priority: filterPriority;
+  sortBy: sortBy;
   sortOrder: 'asc' | 'desc';
   search: string;
 }

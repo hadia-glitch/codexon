@@ -1,22 +1,23 @@
+// /*Author:HadiaNoor Purpose:dashboard Date:29-2-26*/
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/context/AuthContext';
-import { getTasks, createTask, toggleTaskStatus } from '@/lib/tasks';
-import TaskCard from './TaskCard';
-import TaskModal from './TaskModal';
-import type { Task, CreateTaskInput, TaskFilters, FilterStatus, FilterPriority, SortBy } from '@/types';
+import { useAuth } from '@/context/authContext';
+import { getTasks, createTask, updateTask, deleteTask, toggleTaskStatus } from '@/lib/tasks';
+import TaskCard from './taskCard';
+import TaskModal from './taskModal';
+import type { task, createTaskInput, taskFilters, filterStatus, filterPriority, sortBy } from '@/types';
 
-const defaultFilters: TaskFilters = {
+const defaultFilters: taskFilters = {
   status: 'all',
   priority: 'all',
-  sortBy: 'created_at',
+  sortBy: 'createdAt',
   sortOrder: 'desc',
   search: '',
 };
 
-const statusTabs: { value: FilterStatus; label: string }[] = [
+const statusTabOptions: { value: filterStatus; label: string }[] = [
   { value: 'all', label: 'All' },
   { value: 'pending', label: 'Pending' },
   { value: 'in_progress', label: 'In Progress' },
@@ -24,76 +25,97 @@ const statusTabs: { value: FilterStatus; label: string }[] = [
 ];
 
 export default function DashboardClient() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: isAuthLoading } = useAuth();
   const router = useRouter();
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [filters, setFilters] = useState<TaskFilters>(defaultFilters);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [searchInput, setSearchInput] = useState('');
+  const [taskList, setTaskList] = useState<task[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [activeFilters, setActiveFilters] = useState<taskFilters>(defaultFilters);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [taskToEdit, setTaskToEdit] = useState<task | null>(null);
+  const [searchInputValue, setSearchInputValue] = useState('');
 
-  // Redirect if not authenticated
   useEffect(() => {
-    if (!authLoading && !user) {
+    if (!isAuthLoading && !user) {
       router.replace('/auth/login');
     }
-  }, [user, authLoading, router]);
+  }, [user, isAuthLoading, router]);
 
   const fetchTasks = useCallback(async () => {
     if (!user) return;
-    setLoading(true);
+    setIsLoading(true);
     try {
-      const data = await getTasks(user.id, filters);
-      setTasks(data);
+      const fetchedTasks = await getTasks(user.id, activeFilters);
+      setTaskList(fetchedTasks);
     } catch (err) {
       console.error(err);
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
-  }, [user, filters]);
+  }, [user, activeFilters]);
 
   useEffect(() => {
     fetchTasks();
   }, [fetchTasks]);
 
-  // Debounce search
+  // Debounce search input
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setFilters((f) => ({ ...f, search: searchInput }));
+    const debounceTimer = setTimeout(() => {
+      setActiveFilters((prev) => ({ ...prev, search: searchInputValue }));
     }, 400);
-    return () => clearTimeout(timer);
-  }, [searchInput]);
+    return () => clearTimeout(debounceTimer);
+  }, [searchInputValue]);
 
-  const handleCreateTask = async (data: CreateTaskInput) => {
+  const handleCreateTask = async (taskData: createTaskInput) => {
     if (!user) return;
-    await createTask(user.id, data);
+    await createTask(user.id, taskData);
     await fetchTasks();
   };
 
-  const handleStatusToggle = async (task: Task) => {
-    const updated = await toggleTaskStatus(task);
-    setTasks((prev) => prev.map((t) => (t.id === updated.id ? updated : t)));
+  const handleEditTask = async (taskData: createTaskInput) => {
+    if (!taskToEdit) return;
+    await updateTask({ id: taskToEdit.id, ...taskData });
+    await fetchTasks();
   };
 
-  // Stats
-  const stats = {
-    total: tasks.length,
-    pending: tasks.filter((t) => t.status === 'pending').length,
-    inProgress: tasks.filter((t) => t.status === 'in_progress').length,
-    completed: tasks.filter((t) => t.status === 'completed').length,
+  const handleDeleteTask = async (taskId: string) => {
+    await deleteTask(taskId);
+    setTaskList((prev) => prev.filter((t) => t.id !== taskId));
   };
 
-  if (authLoading) return null;
+  const handleStatusToggle = async (task: task) => {
+    const updatedTask = await toggleTaskStatus(task);
+    setTaskList((prev) => prev.map((t) => (t.id === updatedTask.id ? updatedTask : t)));
+  };
+
+  const openEditModal = (task: task) => {
+    setTaskToEdit(task);
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setTaskToEdit(null);
+  };
+
+  const taskStats = {
+    total: taskList.length,
+    pending: taskList.filter((t) => t.status === 'pending').length,
+    inProgress: taskList.filter((t) => t.status === 'in_progress').length,
+    completed: taskList.filter((t) => t.status === 'completed').length,
+  };
+
+  if (isAuthLoading) return null;
   if (!user) return null;
 
-  const greeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return 'Good morning';
-    if (hour < 17) return 'Good afternoon';
+  const getGreeting = () => {
+    const currentHour = new Date().getHours();
+    if (currentHour < 12) return 'Good morning';
+    if (currentHour < 17) return 'Good afternoon';
     return 'Good evening';
   };
 
-  const firstName = (user.user_metadata?.full_name as string)?.split(' ')[0] ?? 'there';
+  const userFirstName = (user.user_metadata?.full_name as string)?.split(' ')[0] ?? 'there';
+  const activeTaskCount = taskStats.pending + taskStats.inProgress;
 
   return (
     <div className="flex flex-col gap-8">
@@ -104,16 +126,16 @@ export default function DashboardClient() {
             {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
           </p>
           <h1 className="font-display text-2xl sm:text-3xl font-800 text-slate-100">
-            {greeting()}, {firstName}
+            {getGreeting()}, {userFirstName}
           </h1>
           <p className="text-slate-500 text-sm mt-1">
-            {stats.total === 0
+            {taskStats.total === 0
               ? 'No tasks yet. Create your first one!'
-              : `${stats.pending + stats.inProgress} active task${stats.pending + stats.inProgress !== 1 ? 's' : ''} · ${stats.completed} completed`}
+              : `${activeTaskCount} active task${activeTaskCount !== 1 ? 's' : ''} · ${taskStats.completed} completed`}
           </p>
         </div>
         <button
-          onClick={() => setModalOpen(true)}
+          onClick={() => { setTaskToEdit(null); setIsModalOpen(true); }}
           className="flex items-center gap-2 px-5 py-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-display font-700 rounded-xl transition-all duration-200 shadow-lg shadow-amber-500/20 hover:shadow-amber-500/30 hover:-translate-y-0.5 w-full sm:w-auto justify-center"
         >
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -126,17 +148,17 @@ export default function DashboardClient() {
       {/* Stats cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
         {[
-          { label: 'Total Tasks', value: stats.total, color: 'text-slate-300', bg: 'bg-slate-800/50', border: 'border-slate-700' },
-          { label: 'Pending', value: stats.pending, color: 'text-slate-400', bg: 'bg-slate-800/30', border: 'border-slate-800' },
-          { label: 'In Progress', value: stats.inProgress, color: 'text-blue-400', bg: 'bg-blue-500/5', border: 'border-blue-500/20' },
-          { label: 'Completed', value: stats.completed, color: 'text-emerald-400', bg: 'bg-emerald-500/5', border: 'border-emerald-500/20' },
-        ].map((stat) => (
+          { label: 'Total Tasks', value: taskStats.total, color: 'text-slate-300', bg: 'bg-slate-800/50', border: 'border-slate-700' },
+          { label: 'Pending', value: taskStats.pending, color: 'text-slate-400', bg: 'bg-slate-800/30', border: 'border-slate-800' },
+          { label: 'In Progress', value: taskStats.inProgress, color: 'text-blue-400', bg: 'bg-blue-500/5', border: 'border-blue-500/20' },
+          { label: 'Completed', value: taskStats.completed, color: 'text-emerald-400', bg: 'bg-emerald-500/5', border: 'border-emerald-500/20' },
+        ].map((statItem) => (
           <div
-            key={stat.label}
-            className={`${stat.bg} border ${stat.border} rounded-xl p-4 transition-all`}
+            key={statItem.label}
+            className={`${statItem.bg} border ${statItem.border} rounded-xl p-4 transition-all`}
           >
-            <p className="font-mono text-xs text-slate-600 uppercase tracking-wider mb-2">{stat.label}</p>
-            <p className={`font-display text-3xl font-800 ${stat.color}`}>{stat.value}</p>
+            <p className="font-mono text-xs text-slate-600 uppercase tracking-wider mb-2">{statItem.label}</p>
+            <p className={`font-display text-3xl font-800 ${statItem.color}`}>{statItem.value}</p>
           </div>
         ))}
       </div>
@@ -150,8 +172,8 @@ export default function DashboardClient() {
           </svg>
           <input
             type="text"
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
+            value={searchInputValue}
+            onChange={(e) => setSearchInputValue(e.target.value)}
             placeholder="Search tasks..."
             className="w-full bg-slate-900 border border-slate-800 rounded-xl pl-11 pr-4 py-3 text-slate-100 placeholder-slate-700 focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/20 transition-all text-sm font-mono"
           />
@@ -159,14 +181,13 @@ export default function DashboardClient() {
 
         {/* Status tabs + filters row */}
         <div className="flex flex-col sm:flex-row gap-3">
-          {/* Status tabs */}
           <div className="flex bg-slate-900 border border-slate-800 rounded-xl p-1 gap-1 flex-1">
-            {statusTabs.map((tab) => (
+            {statusTabOptions.map((tab) => (
               <button
                 key={tab.value}
-                onClick={() => setFilters((f) => ({ ...f, status: tab.value }))}
+                onClick={() => setActiveFilters((prev) => ({ ...prev, status: tab.value }))}
                 className={`flex-1 px-3 py-2 rounded-lg text-xs font-mono font-500 transition-all duration-200 ${
-                  filters.status === tab.value
+                  activeFilters.status === tab.value
                     ? 'bg-amber-500 text-slate-950'
                     : 'text-slate-500 hover:text-slate-300'
                 }`}
@@ -176,10 +197,9 @@ export default function DashboardClient() {
             ))}
           </div>
 
-          {/* Priority filter */}
           <select
-            value={filters.priority}
-            onChange={(e) => setFilters((f) => ({ ...f, priority: e.target.value as FilterPriority }))}
+            value={activeFilters.priority}
+            onChange={(e) => setActiveFilters((prev) => ({ ...prev, priority: e.target.value as filterPriority }))}
             className="bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-400 focus:outline-none focus:border-amber-500/50 transition-all text-xs font-mono appearance-none cursor-pointer"
           >
             <option value="all">All Priorities</option>
@@ -188,19 +208,18 @@ export default function DashboardClient() {
             <option value="low">Low Priority</option>
           </select>
 
-          {/* Sort */}
           <select
-            value={`${filters.sortBy}-${filters.sortOrder}`}
+            value={`${activeFilters.sortBy}-${activeFilters.sortOrder}`}
             onChange={(e) => {
-              const [sortBy, sortOrder] = e.target.value.split('-') as [SortBy, 'asc' | 'desc'];
-              setFilters((f) => ({ ...f, sortBy, sortOrder }));
+              const [sortBy, sortOrder] = e.target.value.split('-') as [sortBy, 'asc' | 'desc'];
+              setActiveFilters((prev) => ({ ...prev, sortBy, sortOrder }));
             }}
             className="bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-400 focus:outline-none focus:border-amber-500/50 transition-all text-xs font-mono appearance-none cursor-pointer"
           >
-            <option value="created_at-desc">Newest First</option>
-            <option value="created_at-asc">Oldest First</option>
-            <option value="due_date-asc">Due Date ↑</option>
-            <option value="due_date-desc">Due Date ↓</option>
+            <option value="createdAt-desc">Newest First</option>
+            <option value="createdAt-asc">Oldest First</option>
+            <option value="dueDate-asc">Due Date ↑</option>
+            <option value="dueDate-desc">Due Date ↓</option>
             <option value="priority-asc">Priority ↑</option>
             <option value="priority-desc">Priority ↓</option>
             <option value="title-asc">Title A-Z</option>
@@ -209,7 +228,7 @@ export default function DashboardClient() {
       </div>
 
       {/* Task grid */}
-      {loading ? (
+      {isLoading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {Array.from({ length: 6 }).map((_, i) => (
             <div
@@ -227,7 +246,7 @@ export default function DashboardClient() {
             </div>
           ))}
         </div>
-      ) : tasks.length === 0 ? (
+      ) : taskList.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-24 text-center">
           <div className="w-20 h-20 bg-slate-900 border border-slate-800 rounded-2xl flex items-center justify-center mb-6">
             <svg className="w-10 h-10 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -236,13 +255,13 @@ export default function DashboardClient() {
           </div>
           <h3 className="font-display text-lg font-600 text-slate-400 mb-2">No tasks found</h3>
           <p className="text-slate-600 text-sm font-mono mb-6">
-            {filters.search || filters.status !== 'all' || filters.priority !== 'all'
+            {searchInputValue || activeFilters.status !== 'all' || activeFilters.priority !== 'all'
               ? 'Try adjusting your filters'
               : 'Create your first task to get started'}
           </p>
-          {filters.status === 'all' && filters.priority === 'all' && !filters.search && (
+          {activeFilters.status === 'all' && activeFilters.priority === 'all' && !searchInputValue && (
             <button
-              onClick={() => setModalOpen(true)}
+              onClick={() => { setTaskToEdit(null); setIsModalOpen(true); }}
               className="px-6 py-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-display font-700 rounded-xl transition-all"
             >
               Create First Task
@@ -251,28 +270,31 @@ export default function DashboardClient() {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {tasks.map((task) => (
+          {taskList.map((task) => (
             <TaskCard
               key={task.id}
               task={task}
               onStatusToggle={handleStatusToggle}
+              onEdit={openEditModal}
+              onDelete={handleDeleteTask}
             />
           ))}
         </div>
       )}
 
       {/* Task count footer */}
-      {!loading && tasks.length > 0 && (
+      {!isLoading && taskList.length > 0 && (
         <p className="text-center text-slate-700 font-mono text-xs">
-          Showing {tasks.length} task{tasks.length !== 1 ? 's' : ''}
+          Showing {taskList.length} task{taskList.length !== 1 ? 's' : ''}
         </p>
       )}
 
-      {/* Modal - create only */}
+      {/* Modal */}
       <TaskModal
-        open={modalOpen}
-        onClose={() => setModalOpen(false)}
-        onSubmit={handleCreateTask}
+        open={isModalOpen}
+        taskToEdit={taskToEdit}
+        onClose={closeModal}
+        onSubmit={taskToEdit ? handleEditTask : handleCreateTask}
       />
     </div>
   );

@@ -1,5 +1,5 @@
-//Author:HadiaNoor Purpose:Dashboard layout Date:27-2-26
-import Navbar from '@/components/dashboard/Navbar';
+//Author:HadiaNoor Purpose:Render navbar component Date:27-2-26
+import Navbar from '@/components/dashboard/navbar';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (

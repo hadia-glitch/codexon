@@ -4,32 +4,32 @@
 import { useState, type FormEvent } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/context/authContext';
 
 export default function LoginForm() {
   const { signIn } = useAuth();
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    setError('');
-    setLoading(true);
+    setErrorMsg('');
+    setIsLoading(true);
     try {
       await signIn(email, password);
       router.push('/dashboard');
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Invalid credentials');
+      setErrorMsg(err instanceof Error ? err.message : 'Invalid credentials');
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 glow-amber-sm">
+    <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 glowAmberSm">
       <div className="mb-8">
         <h1 className="font-display text-2xl font-700 text-slate-100 mb-1">
           Welcome back
@@ -66,21 +66,21 @@ export default function LoginForm() {
           />
         </div>
 
-        {error && (
+        {errorMsg && (
           <div className="flex items-center gap-2 bg-red-500/10 border border-red-500/30 rounded-lg px-4 py-3">
             <svg className="w-4 h-4 text-red-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <p className="text-red-400 text-sm font-mono">{error}</p>
+            <p className="text-red-400 text-sm font-mono">{errorMsg}</p>
           </div>
         )}
 
         <button
           type="submit"
-          disabled={loading}
+          disabled={isLoading}
           className="w-full bg-amber-500 hover:bg-amber-400 disabled:bg-amber-500/50 text-slate-950 font-display font-700 py-3 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 group"
         >
-          {loading ? (
+          {isLoading ? (
             <>
               <div className="w-4 h-4 border-2 border-slate-950 border-t-transparent rounded-full animate-spin" />
               Signing in...
