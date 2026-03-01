@@ -3,28 +3,30 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/context/authContext';
 
 export default function Navbar() {
   const { user, signOut } = useAuth();
   const router = useRouter();
-  const [signingOut, setSigningOut] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [isSigningOut, setIsSigningOut] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const handleSignOut = async () => {
-    setSigningOut(true);
+    setIsSigningOut(true);
     await signOut();
     router.push('/auth/login');
   };
 
-  const initials = user?.user_metadata?.full_name
+  const userInitials = user?.user_metadata?.full_name
     ? (user.user_metadata.full_name as string)
         .split(' ')
-        .map((n: string) => n[0])
+        .map((namePart: string) => namePart[0])
         .join('')
         .toUpperCase()
         .slice(0, 2)
     : user?.email?.[0]?.toUpperCase() ?? '?';
+
+  const displayName = (user?.user_metadata?.full_name as string) ?? 'User';
 
   return (
     <header className="sticky top-0 z-40 bg-slate-950/90 backdrop-blur-md border-b border-slate-800">
@@ -45,20 +47,18 @@ export default function Navbar() {
           {/* Desktop user info */}
           <div className="hidden sm:flex items-center gap-4">
             <div className="text-right">
-              <p className="text-slate-200 text-sm font-medium leading-tight">
-                {user?.user_metadata?.full_name ?? 'User'}
-              </p>
+              <p className="text-slate-200 text-sm font-medium leading-tight">{displayName}</p>
               <p className="text-slate-500 font-mono text-xs">{user?.email}</p>
             </div>
             <div className="w-9 h-9 bg-amber-500/20 border border-amber-500/40 rounded-full flex items-center justify-center shrink-0">
-              <span className="text-amber-400 font-mono text-sm font-600">{initials}</span>
+              <span className="text-amber-400 font-mono text-sm font-600">{userInitials}</span>
             </div>
             <button
               onClick={handleSignOut}
-              disabled={signingOut}
+              disabled={isSigningOut}
               className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-slate-600 text-slate-300 hover:text-slate-100 rounded-lg text-sm font-medium transition-all duration-200 disabled:opacity-50"
             >
-              {signingOut ? (
+              {isSigningOut ? (
                 <div className="w-4 h-4 border border-slate-400 border-t-transparent rounded-full animate-spin" />
               ) : (
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -72,26 +72,24 @@ export default function Navbar() {
           {/* Mobile menu button */}
           <button
             className="sm:hidden flex items-center gap-2 p-2 rounded-lg bg-slate-800 border border-slate-700"
-            onClick={() => setMenuOpen(!menuOpen)}
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
           >
             <div className="w-8 h-8 bg-amber-500/20 border border-amber-500/40 rounded-full flex items-center justify-center">
-              <span className="text-amber-400 font-mono text-xs font-600">{initials}</span>
+              <span className="text-amber-400 font-mono text-xs font-600">{userInitials}</span>
             </div>
           </button>
         </div>
 
         {/* Mobile menu */}
-        {menuOpen && (
+        {isMenuOpen && (
           <div className="sm:hidden border-t border-slate-800 py-4 space-y-3">
             <div>
-              <p className="text-slate-200 text-sm font-medium">
-                {user?.user_metadata?.full_name ?? 'User'}
-              </p>
+              <p className="text-slate-200 text-sm font-medium">{displayName}</p>
               <p className="text-slate-500 font-mono text-xs">{user?.email}</p>
             </div>
             <button
               onClick={handleSignOut}
-              disabled={signingOut}
+              disabled={isSigningOut}
               className="flex items-center gap-2 px-4 py-2 bg-slate-800 border border-slate-700 text-slate-300 rounded-lg text-sm font-medium w-full disabled:opacity-50"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

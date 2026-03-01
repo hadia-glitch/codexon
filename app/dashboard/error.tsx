@@ -1,4 +1,4 @@
-//Author:HadiaNoor Purpose:Fallback for error Date:27-2-26
+//Author:HadiaNoor Purpose:Render error component Date:27-2-26
 'use client';
 
 import { useEffect } from 'react';

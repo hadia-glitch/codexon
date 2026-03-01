@@ -2,11 +2,9 @@
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-slate-950 noise flex items-center justify-center px-4 py-12 relative overflow-hidden">
-      {/* Ambient glow */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-150 h-150 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-0 right-0 w-64 h-64 bg-slate-800/30 rounded-full blur-3xl pointer-events-none" />
 
-      {/* Grid pattern */}
       <div
         className="absolute inset-0 opacity-[0.03] pointer-events-none"
         style={{
@@ -16,7 +14,6 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       />
 
       <div className="relative w-full max-w-md">
-        {/* Logo */}
         <div className="text-center mb-10">
           <div className="inline-flex items-center gap-2 mb-2">
             <div className="w-8 h-8 bg-amber-500 rounded-md flex items-center justify-center">
